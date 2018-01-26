@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>大气球</title>
+    <style type="text/css">
+    * {
+        margin: 0;
+        padding: 0;
+        -webkit-user-select: none;
+    }
+
+    html,
+    body,
+    #box {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;color: #fff;
+        background: #92d9d5 url(16pic_1319226_b.jpg) no-repeat;
+        background-size:cover;cursor: url(qiang.png) ,auto;
+    }
+
+    .balloon {
+        width: 118px;
+        height: 166px;
+        background: url(balloon.png);
+        position: absolute;
+
+    }
+    </style>
+</head>
+
+<body>
+	<audio src="bgm.mp3" autoplay loop></audio>
+	<audio src="ak47.mp3" id="boom"></audio>
+    <div id="box">
+        <h3 id="info"></h3>
+        <h3 id="score"></h3>
+        <h3 id="time"></h3>
+    </div>
+    <script type="text/javascript">
+    function Balloon() {
+        // 防止 气球 随机在屏幕的右侧的外面 
+        var x = parseInt(Math.random() * document.documentElement.clientWidth - 115);
+        // 如果说随机在了左侧的外面，直接改成0 就行了
+        this.x = x < 0 ? 0 : x;
+        // 随机一个 气球类型
+        this.type = parseInt(Math.random() * 12); 
+        // 让气球 在浏览器的视口、外侧的下面
+        this.y = document.documentElement.clientHeight;
+        this.init();
+        // 速度
+        var self = this;
+        // 根据 气球的分数 返回相应的速度
+        this.speed = (function() {
+            if (self.type <= 8) {
+                return self.type * 1.2 + 2
+            } else if (self.type == 9) {
+                return 14
+            } else if (self.type == 10) {
+                return 14
+            } else if (self.type == 11) {
+                return 8
+            }
+        })();
+        // 将自己 放进数组
+        arr.push(this);
+        // 添加监听
+        this.bindEvent();
+    }
+    // 初始化
+    Balloon.prototype.init = function() {
+    	// 创建 标签
+        this.dom = document.createElement("p");
+        // 给这个p标签添加以恶搞类
+        this.dom.className = "balloon";
+        // 设置 初始的 top  left 值
+        this.dom.style.top = this.y + "px";
+        this.dom.style.left = this.x + "px";
+        // 初始化 气球的样式
+        this.dom.style.backgroundPosition = -140 * (this.type % 4) + "px " + -176 * parseInt(this.type / 4) + "px";
+        // 上树
+        document.getElementById("box").appendChild(this.dom);
+    };
+    // 更新方法
+    Balloon.prototype.update = function() {
+    	// 根据自己的速度 -- 
+        this.y -= this.speed;
+        // 如果 飞出屏幕的上方  调用 自杀方法
+        if (this.y < -166) {
+            this.goDie()
+        }
+        this.dom.style.top = this.y + "px";
+    };
+    // 自杀方法
+    Balloon.prototype.goDie = function() {
+        document.getElementById("box").removeChild(this.dom);
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === this) {
+                arr.splice(i, 1)
+            }
+        }
+    };
+    // 添加监听
+    Balloon.prototype.bindEvent = function() {
+        var self = this;
+        this.dom.onclick = function() {
+        	// 记分语句
+        	if(self.type <= 8){
+        		score += self.type + 1;
+        	}else if(self.type == 9){
+        		score *= 2
+        	}else if(self.type == 10){
+        		score /= 2
+        	}else if(self.type == 11){
+        		// 随机 要么清零 要么乘10
+        		score = Math.random() < 0.5 ? 0 : score * 10
+        	}
+        	// 调用删除方法 一定要放在 记分 条件语句后面
+        	// 播放音乐
+        	document.getElementById("boom").load()
+        	document.getElementById("boom").play()
+        	// 调用自杀
+            self.goDie();
+
+        }
+    }
+    var arr = [];
+    // 帧编号
+    var f = 0;
+    // 分数
+    var score = 0;
+    // 时间
+    var time = 10;
+    // 主定时器 、 主循环
+    var timer = setInterval(function() {
+        f++;
+        document.getElementById("info").innerHTML = "帧：" + f
+        document.getElementById("score").innerHTML = "分数：" + score
+        document.getElementById("time").innerHTML = "计时：" + time
+        // 没30帧 new 一个气球
+        f % 30 == 0 && new Balloon();
+        // 没50帧（每秒）让时间 --
+        f % 50 == 0 && time-- 
+        // 
+        if(time == 0){
+        	// 游戏结束
+        	clearInterval(timer);
+        	alert("你的分数是" + score + "!!!!")
+        }
+        // 循环数组 并更新
+        for (var i = 0; i < arr.length; i++) {
+            arr[i].update()
+        }
+    }, 20)
+    </script>
+</body>
+
+</html>
